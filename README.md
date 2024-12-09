@@ -1,8 +1,29 @@
+# To-do App
+
+A simple and user-friendly To-do application built using **React Native**, **Redux Toolkit**, **TypeScript**, and **React Hook**.
+
+## Features
+
+1. View a list of to-do items, add new items, delete or update existing items.
+2. Assign priorities to items (High, Medium, Low) and sort them automatically by priority.
+   - Priority is visually indicated using colors/icons.
+3. Persistent storage using **AsyncStorage** to save tasks and reload them on app restart.
+4. Smooth animations powered by **Reanimated** for an intuitive and engaging user experience.
+5. Optimized performance to handle large lists efficiently.
+
+## Technical Details
+
+- **State Management:** Redux Toolkit for managing global state.
+- **Animations:** Custom layout animations using Reanimated (avoiding default animations like fade-in/out).
+- **Persistence:** AsyncStorage for data retention across app sessions.
+
+# React Native
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 # Getting Started
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+> **Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
 
 ## Step 1: Start the Metro Server
 
