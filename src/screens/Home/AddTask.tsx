@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   TextInput,
@@ -15,37 +15,83 @@ import {COLORS} from '~constants/styles';
 import {Task} from '~types';
 import {useAppDispatch} from '~redux';
 import uuid from 'react-native-uuid';
-import {addTask} from '~redux/slices/task';
-
-const AddTask = ({task, onClose}: {task: Task | null; onClose: () => void}) => {
+import {addTask, removeTask, updateTask} from '~redux/slices/task';
+import moment from 'moment';
+const AddTask = ({
+  task,
+  setCurrentTask,
+  onClose,
+}: {
+  task: Task | null;
+  setCurrentTask: (task: Task | null) => void;
+  onClose: () => void;
+}) => {
   const dispatch = useAppDispatch();
   const [taskTitle, setTaskTitle] = useState(task?.title || '');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('low');
   const [showPriorityDialog, setShowPriorityDialog] = useState(false);
+
+  useEffect(() => {
+    if (task) {
+      setTaskTitle(task.title);
+      setDate(moment(task.deadline, 'DD/MM/YYYY').toDate());
+      setPriority(task.priority);
+    } else {
+      setTaskTitle('');
+      setDate(new Date());
+      setPriority('low');
+    }
+    return () => {};
+  }, [task]);
+
   const handleAddTask = () => {
     if (taskTitle === '') {
       Alert.alert('Vui lòng nhập tiêu đề task');
       return;
     }
-    const newTask = {
-      id: uuid.v4(),
-      title: taskTitle,
-      deadline: getDate(date),
-      completed: false,
-      priority,
-    };
-    dispatch(addTask(newTask));
-    onClose();
+    if (task != null) {
+      const updatedTask = {
+        ...task,
+        title: taskTitle,
+        deadline: getDate(date),
+        priority,
+      };
+      dispatch(updateTask(updatedTask));
+      setCurrentTask(null);
+      onClose();
+    } else {
+      const newTask = {
+        id: uuid.v4(),
+        title: taskTitle,
+        deadline: getDate(date),
+        completed: false,
+        priority,
+      };
+      dispatch(addTask(newTask));
+      onClose();
+    }
+  };
+
+  const handleRemoveTask = () => {
+    if (task) {
+      dispatch(removeTask(task.id));
+      setCurrentTask(null);
+      onClose();
+    }
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => {}} style={styles.deleteButton}>
-        <Icon name="trash-2" color="#666" size={24} type="feather" />
-        <Text style={styles.deleteText}>Xóa</Text>
-      </TouchableOpacity>
+      {task && (
+        <TouchableOpacity
+          onPress={() => handleRemoveTask()}
+          style={styles.deleteButton}>
+          <Icon name="trash-2" color="#666" size={24} type="feather" />
+          <Text style={styles.deleteText}>Xóa</Text>
+        </TouchableOpacity>
+      )}
       <TextInput
         style={styles.input}
         placeholder="Nhập task mới"

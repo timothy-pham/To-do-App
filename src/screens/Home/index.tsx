@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
 import {COLORS} from '~constants/styles';
 import {useSelector} from 'react-redux';
@@ -13,22 +13,39 @@ const Home = () => {
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [isAddingTask, setIsAddingTask] = useState(false);
 
+  const addTaskComponent = useMemo(() => {
+    if (isAddingTask || currentTask) {
+      return (
+        <AddTask
+          task={currentTask}
+          setCurrentTask={setCurrentTask}
+          onClose={() => setIsAddingTask(false)}
+        />
+      );
+    }
+  }, [isAddingTask, currentTask]);
+
+  const handleAddTask = () => {
+    setCurrentTask(null);
+    setIsAddingTask(true);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>To-do list</Text>
-      {isAddingTask && (
-        <AddTask task={currentTask} onClose={() => setIsAddingTask(false)} />
-      )}
+      {addTaskComponent}
       <View style={styles.taskList}>
         <FlatList
           data={Object.values(tasks)}
-          renderItem={({item}) => <TaskItem {...item} />}
+          renderItem={({item}) => (
+            <TaskItem task={item} setCurrentTask={setCurrentTask} />
+          )}
           keyExtractor={item => item.id}
         />
       </View>
       <TouchableOpacity
         style={styles.addTaskButton}
-        onPress={() => setIsAddingTask(true)}>
+        onPress={() => handleAddTask()}>
         <Text style={styles.addTaskButtonText}>Tạo task mới +</Text>
       </TouchableOpacity>
     </SafeAreaView>

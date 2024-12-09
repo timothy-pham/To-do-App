@@ -6,15 +6,29 @@ import {PRIORITY} from '~constants/task';
 import {StyleSheet} from 'react-native';
 import {Task} from '~types';
 import {getDueIn} from '~src/utils/format';
-
-const TaskItem = (task: Task) => {
-  const toggleTaskCompletion = (id: string) => {};
+import {useAppDispatch} from '~src/redux';
+import {updateTask} from '~redux/slices/task';
+const TaskItem = ({
+  task,
+  setCurrentTask,
+}: {
+  task: Task;
+  setCurrentTask: (task: Task) => void;
+}) => {
+  const dispatch = useAppDispatch();
+  const toggleTaskCompletion = () => {
+    const updatedTask = {
+      ...task,
+      completed: !task.completed,
+    };
+    dispatch(updateTask(updatedTask));
+  };
   return (
     <View
       key={task.id}
       style={[styles.taskItem, task.completed && styles.taskCompleted]}>
       <TouchableOpacity
-        onPress={() => toggleTaskCompletion(task.id)}
+        onPress={() => toggleTaskCompletion()}
         style={styles.taskCheckBox}>
         {task.completed ? (
           <Icon name="check-square" color="#666" size={24} type="feather" />
@@ -31,7 +45,10 @@ const TaskItem = (task: Task) => {
             ]}>
             {task.title}
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              setCurrentTask(task);
+            }}>
             <Icon name="edit-2" color="#666" size={24} type="feather" />
           </TouchableOpacity>
         </View>
@@ -51,7 +68,7 @@ const TaskItem = (task: Task) => {
                   color: COLORS.priority[task.priority],
                 },
               ]}>
-              {PRIORITY[task.priority]}
+              Ưu tiên {PRIORITY[task.priority]}
             </Text>
           </View>
           <Text style={styles.taskDueIn}>{getDueIn(task.deadline)}</Text>
@@ -74,7 +91,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   taskCompleted: {
-    opacity: 0.5,
+    opacity: 0.8,
   },
   taskDetails: {
     flex: 1,
