@@ -1,46 +1,31 @@
 import {createSlice} from '@reduxjs/toolkit';
+import {storeData} from '~libs/async/storage';
 import {Task} from '~types';
 
-const initialState: {[key: string]: Task} = {
-  '1': {
-    id: '1',
-    title: 'Task 1',
-    deadline: '27/12/2024',
-    completed: false,
-    priority: 'high',
-  },
-  '2': {
-    id: '2',
-    title: 'Task 2',
-    deadline: '24/12/2024',
-    completed: false,
-    priority: 'medium',
-  },
-  '3': {
-    id: '3',
-    title: 'Task 3',
-    deadline: '15/12/2024',
-    completed: false,
-    priority: 'low',
-  },
-};
+const initialState: {[key: string]: Task} = {};
 
 const taskSlice = createSlice({
   name: 'tasks',
   initialState: initialState,
   reducers: {
+    syncTasks: (state, action: {payload: {[key: string]: Task}}) => {
+      return action.payload;
+    },
     addTask: (state, action: {payload: Task}) => {
       state[action.payload.id] = action.payload;
+      storeData('tasks', state);
     },
     removeTask: (state, action: {payload: string}) => {
       delete state[action.payload];
+      storeData('tasks', state);
     },
     updateTask: (state, action: {payload: Task}) => {
       state[action.payload.id] = action.payload;
+      storeData('tasks', state);
     },
   },
 });
 
-export const {addTask, updateTask, removeTask} = taskSlice.actions;
+export const {syncTasks, addTask, updateTask, removeTask} = taskSlice.actions;
 
 export default taskSlice.reducer;

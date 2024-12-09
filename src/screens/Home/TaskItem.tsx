@@ -5,8 +5,8 @@ import {COLORS} from '~constants/styles';
 import {PRIORITY} from '~constants/task';
 import {StyleSheet} from 'react-native';
 import {Task} from '~types';
-import {getDueIn} from '~src/utils/format';
-import {useAppDispatch} from '~src/redux';
+import {getDueIn} from '~utils/format';
+import {useAppDispatch} from '~redux';
 import {updateTask} from '~redux/slices/task';
 const TaskItem = ({
   task,

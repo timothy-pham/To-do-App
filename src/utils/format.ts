@@ -11,7 +11,9 @@ export const getDueIn = (inputDate: string) => {
     return `Còn ${diffInDays} ngày`;
   } else if (dueDate.isBefore(now)) {
     const diffInDays = now.diff(dueDate, 'days');
-    return `Đã quá hạn ${diffInDays} ngày`;
+    return diffInDays > 0
+      ? `Đã quá hạn ${diffInDays} ngày`
+      : 'Hôm nay là hạn chót';
   } else {
     return 'Hôm nay là hạn chót';
   }

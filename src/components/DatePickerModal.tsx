@@ -1,7 +1,7 @@
 import React from 'react';
 import {Modal, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import DatePicker from 'react-native-date-picker';
-import {COLORS} from '~src/constants/styles';
+import {COLORS} from '~constants/styles';
 
 const DatePickerModal = ({
   visible,
