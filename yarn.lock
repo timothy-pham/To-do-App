@@ -3067,7 +3067,7 @@ __metadata:
     prettier: 2.8.8
     react: 18.3.1
     react-native: 0.76.3
-    react-native-date-picker: ^5.0.7
+    react-native-date-picker: 4.2.7
     react-native-gesture-handler: ^2.21.2
     react-native-reanimated: ^3.16.3
     react-native-safe-area-context: ^5.0.0
@@ -8208,13 +8208,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-date-picker@npm:^5.0.7":
-  version: 5.0.7
-  resolution: "react-native-date-picker@npm:5.0.7"
-  peerDependencies:
-    react: ">= 17.0.1"
-    react-native: ">= 0.64.3"
-  checksum: 94191bf3ce6e88a3acc4ca5e5514eaa6fc15c61666393d85ca258dba3a3efd9145c8fd31ed0f18676d7f083e17f08c760de8193ad24367a65761330084bcdc6b
+"react-native-date-picker@npm:4.2.7":
+  version: 4.2.7
+  resolution: "react-native-date-picker@npm:4.2.7"
+  dependencies:
+    prop-types: ^15.8.1
+  checksum: 3bfe1b7bfb7b4b50c7ee590e7d48382eebeb264a70a6255c4972211e74a3a18ec2009fc591384f6f81412cb4c281867f3e1fa994308f86ce6c6d82da24bb848a
   languageName: node
   linkType: hard
 
