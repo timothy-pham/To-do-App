@@ -29,13 +29,13 @@ const taskSlice = createSlice({
   name: 'tasks',
   initialState: initialState,
   reducers: {
-    addTask: (state, action) => {
+    addTask: (state, action: {payload: Task}) => {
       state[action.payload.id] = action.payload;
     },
     removeTask: (state, action) => {
       delete state[action.payload];
     },
-    updateTask: (state, action) => {
+    updateTask: (state, action: {payload: Task}) => {
       state[action.payload.id] = action.payload;
     },
   },

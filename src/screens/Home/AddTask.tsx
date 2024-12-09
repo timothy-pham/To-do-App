@@ -5,23 +5,39 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import DatePickerModal from '~components/DatePickerModal';
-import {PRIORITY} from '~src/constants/task';
+import {PRIORITY} from '~constants/task';
 import {Dialog, Icon} from '@rneui/themed';
 import {getDate} from '~utils/format';
-import {COLORS} from '~src/constants/styles';
+import {COLORS} from '~constants/styles';
+import {Task} from '~types';
+import {useAppDispatch} from '~redux';
+import uuid from 'react-native-uuid';
+import {addTask} from '~redux/slices/task';
 
-const AddTask = () => {
-  const [taskTitle, setTaskTitle] = useState('');
+const AddTask = ({task, onClose}: {task: Task | null; onClose: () => void}) => {
+  const dispatch = useAppDispatch();
+  const [taskTitle, setTaskTitle] = useState(task?.title || '');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('low');
   const [showPriorityDialog, setShowPriorityDialog] = useState(false);
   const handleAddTask = () => {
-    if (taskTitle.trim() !== '') {
-      setTaskTitle('');
+    if (taskTitle === '') {
+      Alert.alert('Vui lòng nhập tiêu đề task');
+      return;
     }
+    const newTask = {
+      id: uuid.v4(),
+      title: taskTitle,
+      deadline: getDate(date),
+      completed: false,
+      priority,
+    };
+    dispatch(addTask(newTask));
+    onClose();
   };
 
   return (
@@ -35,7 +51,6 @@ const AddTask = () => {
         placeholder="Nhập task mới"
         value={taskTitle}
         onChangeText={setTaskTitle}
-        onSubmitEditing={handleAddTask}
       />
       <View style={styles.customInput}>
         <TouchableOpacity
