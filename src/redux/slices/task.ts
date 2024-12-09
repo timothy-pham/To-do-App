@@ -13,6 +13,7 @@ const taskSlice = createSlice({
     },
     addTask: (state, action: {payload: Task}) => {
       state[action.payload.id] = action.payload;
+      sortTasks(state);
       storeData('tasks', state);
     },
     removeTask: (state, action: {payload: string}) => {
@@ -21,10 +22,26 @@ const taskSlice = createSlice({
     },
     updateTask: (state, action: {payload: Task}) => {
       state[action.payload.id] = action.payload;
+      sortTasks(state);
       storeData('tasks', state);
     },
   },
 });
+
+const sortTasks = (state: {[key: string]: Task}) => {
+  const sortedEntries = Object.entries(state).sort(([, a], [, b]) => {
+    // Sorting logic based on priority
+    const priorityOrder = {high: 1, medium: 2, low: 3};
+    return priorityOrder[a.priority] - priorityOrder[b.priority];
+  });
+
+  // Reconstruct the state object with sorted entries
+  const sortedState = Object.fromEntries(sortedEntries);
+
+  // Overwrite the state with the sorted version
+  Object.keys(state).forEach(key => delete state[key]);
+  Object.assign(state, sortedState);
+};
 
 export const {syncTasks, addTask, updateTask, removeTask} = taskSlice.actions;
 

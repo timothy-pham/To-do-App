@@ -1,5 +1,10 @@
 import React from 'react';
-import {View, TouchableOpacity, Text} from 'react-native';
+import Animated, {
+  Layout,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
+import {View, TouchableOpacity, Text, ViewToken} from 'react-native';
 import {Icon} from '@rneui/themed';
 import {COLORS} from '~constants/styles';
 import {PRIORITY} from '~constants/task';
@@ -8,75 +13,102 @@ import {Task} from '~types';
 import {getDueIn} from '~utils/format';
 import {useAppDispatch} from '~redux';
 import {updateTask} from '~redux/slices/task';
-const TaskItem = ({
-  task,
-  setCurrentTask,
-}: {
-  task: Task;
-  setCurrentTask: (task: Task) => void;
-}) => {
-  const dispatch = useAppDispatch();
-  const toggleTaskCompletion = () => {
-    const updatedTask = {
-      ...task,
-      completed: !task.completed,
+
+const TaskItem = React.memo(
+  ({
+    task,
+    setCurrentTask,
+    viewableItems,
+  }: {
+    task: Task;
+    setCurrentTask: (task: Task) => void;
+    viewableItems: Animated.SharedValue<ViewToken[]>;
+  }) => {
+    const dispatch = useAppDispatch();
+
+    const toggleTaskCompletion = () => {
+      const updatedTask = {
+        ...task,
+        completed: !task.completed,
+      };
+      dispatch(updateTask(updatedTask));
     };
-    dispatch(updateTask(updatedTask));
-  };
-  return (
-    <View
-      key={task.id}
-      style={[styles.taskItem, task.completed && styles.taskCompleted]}>
-      <TouchableOpacity
-        onPress={() => toggleTaskCompletion()}
-        style={styles.taskCheckBox}>
-        {task.completed ? (
-          <Icon name="check-square" color="#666" size={24} type="feather" />
-        ) : (
-          <Icon name="square" color="#666" size={24} type="feather" />
-        )}
-      </TouchableOpacity>
-      <View style={styles.taskDetails}>
-        <View style={styles.taskMeta}>
-          <Text
-            style={[
-              styles.taskTitle,
-              task.priority === 'high' && styles.highPriorityTask,
-            ]}>
-            {task.title}
-          </Text>
-          <TouchableOpacity
-            onPress={() => {
-              setCurrentTask(task);
-            }}>
-            <Icon name="edit-2" color="#666" size={24} type="feather" />
-          </TouchableOpacity>
-        </View>
-        <View style={[styles.taskMeta, {marginTop: 20}]}>
-          <View style={styles.priorityIndicator}>
-            <Icon
-              name="alert-circle"
-              color={COLORS.priority[task.priority]}
-              size={16}
-              type="feather"
-              style={styles.priorityIcon}
-            />
+
+    const rStyle = useAnimatedStyle(() => {
+      const isVisible = Boolean(
+        viewableItems.value
+          .filter(item => item.isViewable)
+          .find(viewableItem => viewableItem.item.id === task.id),
+      );
+      return {
+        opacity: withTiming(isVisible ? 1 : 0),
+        transform: [
+          {
+            scale: withTiming(isVisible ? 1 : 0.6),
+          },
+        ],
+      };
+    }, []);
+
+    return (
+      <Animated.View
+        key={task.id}
+        style={[
+          styles.taskItem,
+          task.completed && styles.taskCompleted,
+          rStyle,
+        ]}>
+        <TouchableOpacity
+          onPress={() => toggleTaskCompletion()}
+          style={styles.taskCheckBox}>
+          {task.completed ? (
+            <Icon name="check-square" color="#666" size={24} type="feather" />
+          ) : (
+            <Icon name="square" color="#666" size={24} type="feather" />
+          )}
+        </TouchableOpacity>
+        <View style={styles.taskDetails}>
+          <View style={styles.taskMeta}>
             <Text
               style={[
-                styles.priorityText,
-                {
-                  color: COLORS.priority[task.priority],
-                },
+                styles.taskTitle,
+                task.priority === 'high' && styles.highPriorityTask,
               ]}>
-              Ưu tiên {PRIORITY[task.priority]}
+              {task.title}
             </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setCurrentTask(task);
+              }}>
+              <Icon name="edit-2" color="#666" size={24} type="feather" />
+            </TouchableOpacity>
           </View>
-          <Text style={styles.taskDueIn}>{getDueIn(task.deadline)}</Text>
+          <View style={[styles.taskMeta, {marginTop: 20}]}>
+            <View style={styles.priorityIndicator}>
+              <Icon
+                name="alert-circle"
+                color={COLORS.priority[task.priority]}
+                size={16}
+                type="feather"
+                style={styles.priorityIcon}
+              />
+              <Text
+                style={[
+                  styles.priorityText,
+                  {
+                    color: COLORS.priority[task.priority],
+                  },
+                ]}>
+                Ưu tiên {PRIORITY[task.priority]}
+              </Text>
+            </View>
+            <Text style={styles.taskDueIn}>{getDueIn(task.deadline)}</Text>
+          </View>
         </View>
-      </View>
-    </View>
-  );
-};
+      </Animated.View>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   taskItem: {
@@ -91,7 +123,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   taskCompleted: {
-    opacity: 0.8,
+    borderColor: COLORS.success,
+    borderWidth: 2,
   },
   taskDetails: {
     flex: 1,

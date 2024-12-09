@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   TextInput,
@@ -6,6 +6,7 @@ import {
   Text,
   StyleSheet,
   Alert,
+  Animated,
 } from 'react-native';
 import DatePickerModal from '~components/DatePickerModal';
 import {PRIORITY} from '~constants/task';
@@ -32,6 +33,7 @@ const AddTask = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('low');
   const [showPriorityDialog, setShowPriorityDialog] = useState(false);
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (task) {
@@ -51,27 +53,42 @@ const AddTask = ({
       Alert.alert('Vui lòng nhập tiêu đề task');
       return;
     }
-    if (task != null) {
-      const updatedTask = {
-        ...task,
-        title: taskTitle,
-        deadline: getDate(date),
-        priority,
-      };
-      dispatch(updateTask(updatedTask));
-      setCurrentTask(null);
-      onClose();
-    } else {
-      const newTask = {
-        id: uuid.v4(),
-        title: taskTitle,
-        deadline: getDate(date),
-        completed: false,
-        priority,
-      };
-      dispatch(addTask(newTask));
-      onClose();
-    }
+    // Start the scale animation
+    Animated.sequence([
+      Animated.timing(scaleValue, {
+        toValue: 0.9,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleValue, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // Handle task addition
+      if (task != null) {
+        const updatedTask = {
+          ...task,
+          title: taskTitle,
+          deadline: getDate(date),
+          priority,
+        };
+        dispatch(updateTask(updatedTask));
+        setCurrentTask(null);
+        onClose();
+      } else {
+        const newTask = {
+          id: uuid.v4(),
+          title: taskTitle,
+          deadline: getDate(date),
+          completed: false,
+          priority,
+        };
+        dispatch(addTask(newTask));
+        onClose();
+      }
+    });
   };
 
   const handleRemoveTask = () => {
@@ -80,6 +97,11 @@ const AddTask = ({
       setCurrentTask(null);
       onClose();
     }
+  };
+
+  const handleCancel = () => {
+    setCurrentTask(null);
+    onClose();
   };
 
   return (
@@ -147,9 +169,15 @@ const AddTask = ({
           ))}
         </Dialog>
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleAddTask}>
-        <Text style={styles.buttonText}>Xong</Text>
-      </TouchableOpacity>
+      <Animated.View
+        style={[styles.buttonContainer, {transform: [{scale: scaleValue}]}]}>
+        <TouchableOpacity style={[styles.button]} onPress={handleCancel}>
+          <Text style={[styles.buttonText, styles.buttonTextCancel]}>Hủy</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleAddTask}>
+          <Text style={styles.buttonText}>Xong</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 };
@@ -221,6 +249,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   button: {
     marginTop: 20,
     alignItems: 'center',
@@ -232,6 +264,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     paddingVertical: 5,
     borderRadius: 15,
+  },
+  buttonTextCancel: {
+    backgroundColor: COLORS.error,
   },
 });
 

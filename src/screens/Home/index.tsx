@@ -1,5 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  ViewToken,
+} from 'react-native';
 import {COLORS} from '~constants/styles';
 import {useSelector} from 'react-redux';
 import {RootState, useAppDispatch} from '~redux';
@@ -8,58 +15,83 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import AddTask from './AddTask';
 import {Task} from '~types';
 import {getData} from '~libs/async/storage';
-import {syncTasks} from '~redux/slices/task';
-
+import {addTask, syncTasks} from '~redux/slices/task';
+import uuid from 'react-native-uuid';
+import Animated, {
+  useSharedValue,
+  withTiming,
+  useAnimatedStyle,
+  runOnJS,
+} from 'react-native-reanimated';
 const Home = () => {
+  const viewableItems = useSharedValue<ViewToken[]>([]);
   const dispatch = useAppDispatch();
   const tasks = useSelector((state: RootState) => state.tasks);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [isAddingTask, setIsAddingTask] = useState(false);
+  const animationValue = useSharedValue(1);
 
-  const syncTaskFromStorage = useCallback(async () => {
+  const syncTaskFromStorage = async () => {
     try {
       const tasksData = await getData('tasks');
       if (tasksData) {
         dispatch(syncTasks(tasksData));
       }
     } catch (error) {}
-  }, []);
+  };
 
   useEffect(() => {
     syncTaskFromStorage();
     return () => {};
   }, []);
 
-  const taskList: Task[] = useMemo(() => {
-    // sort tasks by priority (high -> medium -> low)
-    // sort tasks by deadline (earliest -> latest)
-    const priorityOrder = ['high', 'medium', 'low'];
-    const sortedTasks = Object.values(tasks).sort((a, b) => {
-      if (a.priority !== b.priority) {
-        return (
-          priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority)
-        );
-      }
-      return a.deadline.localeCompare(b.deadline);
+  const onCloseHandle = () => {
+    animationValue.value = withTiming(0, {duration: 300}, () => {
+      runOnJS(setIsAddingTask)(false);
     });
-    return sortedTasks;
-  }, [tasks]);
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: animationValue.value,
+    transform: [{scale: animationValue.value}],
+  }));
 
   const addTaskComponent = useMemo(() => {
     if (isAddingTask || currentTask) {
       return (
-        <AddTask
-          task={currentTask}
-          setCurrentTask={setCurrentTask}
-          onClose={() => setIsAddingTask(false)}
-        />
+        <Animated.View style={[animatedStyle]}>
+          <AddTask
+            task={currentTask}
+            setCurrentTask={setCurrentTask}
+            onClose={() => onCloseHandle()}
+          />
+        </Animated.View>
       );
     }
   }, [isAddingTask, currentTask]);
 
+  const handeEditTask = (task: Task) => {
+    setCurrentTask(task);
+    setIsAddingTask(true);
+    animationValue.value = withTiming(1);
+  };
+
   const handleAddTask = () => {
+    // // TESTING
+    // // random 1 - 3 to get priority
+    // const random = Math.floor(Math.random() * 3) + 1;
+    // const newTask: Task = {
+    //   id: uuid.v4(),
+    //   title: 'TESET',
+    //   deadline: '01/01/2025',
+    //   completed: false,
+    //   priority: random === 1 ? 'high' : random === 2 ? 'medium' : 'low',
+    // };
+    // dispatch(addTask(newTask));
+
     setCurrentTask(null);
     setIsAddingTask(true);
+    animationValue.value = withTiming(1);
   };
 
   return (
@@ -68,15 +100,22 @@ const Home = () => {
       {addTaskComponent}
       <View style={styles.taskList}>
         <FlatList
-          data={taskList}
+          data={Object.values(tasks)}
           renderItem={({item}) => (
-            <TaskItem task={item} setCurrentTask={setCurrentTask} />
+            <TaskItem
+              viewableItems={viewableItems}
+              task={item}
+              setCurrentTask={handeEditTask}
+            />
           )}
           keyExtractor={item => item.id}
+          onViewableItemsChanged={({viewableItems: items}) => {
+            viewableItems.value = items;
+          }}
           showsVerticalScrollIndicator={false}
-          initialNumToRender={10}
-          maxToRenderPerBatch={10}
-          windowSize={10}
+          initialNumToRender={20}
+          maxToRenderPerBatch={20}
+          windowSize={20}
         />
       </View>
       <TouchableOpacity
