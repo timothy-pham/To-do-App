@@ -130,6 +130,7 @@ const AddTask = ({
         <DatePickerModal
           visible={showDatePicker}
           onClose={() => setShowDatePicker(false)}
+          date={date}
           onDateChange={setDate}
         />
       </View>

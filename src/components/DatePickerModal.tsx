@@ -6,10 +6,12 @@ import {COLORS} from '~constants/styles';
 const DatePickerModal = ({
   visible,
   onClose,
+  date,
   onDateChange,
 }: {
   visible: boolean;
   onClose: () => void;
+  date: Date;
   onDateChange: (date: Date) => void;
 }) => {
   return (
@@ -20,11 +22,7 @@ const DatePickerModal = ({
       onRequestClose={onClose}>
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <DatePicker
-            date={new Date()}
-            onDateChange={onDateChange}
-            mode="date"
-          />
+          <DatePicker date={date} onDateChange={onDateChange} mode="date" />
           <TouchableOpacity style={styles.button} onPress={onClose}>
             <Text style={styles.buttonText}>XONG</Text>
           </TouchableOpacity>
